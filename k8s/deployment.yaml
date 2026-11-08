@@ -60,8 +60,8 @@ spec:
         - name: PROXY_KEY
           valueFrom:
             secretKeyRef:
-              name: open-llm-proxy-secrets
-              key: proxy-key
+              name: open-llm-proxy-app-keys
+              key: padus
         command:
         - sh
         - -c
