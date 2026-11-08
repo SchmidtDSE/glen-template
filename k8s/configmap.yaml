@@ -129,7 +129,7 @@ data:
         default $remote_addr;
     }
     limit_req_zone $client_addr zone=llm:10m rate=60r/m;
-    limit_req_zone $client_addr zone=mcp:10m rate=120r/m;
+    limit_req_zone $client_addr zone=mcp:10m rate=60r/m;
     limit_conn_zone $client_addr zone=addr:10m;
     limit_req_status 429;
     limit_conn_status 429;
@@ -198,8 +198,7 @@ data:
             proxy_set_header Connection "";
             proxy_set_header Authorization "Bearer ${MCP_AUTH_TOKEN}";
             proxy_set_header X-Real-IP $client_addr;
-            limit_req zone=mcp burst=60 nodelay;
-            limit_conn addr 20;
+            limit_req zone=mcp burst=120 nodelay;
             proxy_read_timeout 600s;
             proxy_send_timeout 600s;
             proxy_buffering off;
