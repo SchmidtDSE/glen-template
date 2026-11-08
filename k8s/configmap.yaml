@@ -119,6 +119,21 @@ metadata:
   namespace: biodiversity
 data:
   nginx.conf.template: |
+    # ── Per-client limits on the LLM and MCP paths (glen-ops#246) ──
+    # $client_addr is the last X-Forwarded-For entry, the one HAProxy appends
+    # from the connection it actually received, so a client cannot choose it by
+    # sending its own header. In-cluster callers have no XFF and fall back to
+    # $remote_addr. Values were set from proxy-log measurements (see the PR).
+    map $http_x_forwarded_for $client_addr {
+        "~(?:^|,)\s*(?<last>[^,\s]+)\s*$" $last;
+        default $remote_addr;
+    }
+    limit_req_zone $client_addr zone=llm:10m rate=60r/m;
+    limit_req_zone $client_addr zone=mcp:10m rate=120r/m;
+    limit_conn_zone $client_addr zone=addr:10m;
+    limit_req_status 429;
+    limit_conn_status 429;
+
     server {
         listen 80;
         server_name _;
@@ -155,6 +170,9 @@ data:
         location /api/llm/ {
             proxy_pass http://open-llm-proxy.biodiversity.svc.cluster.local:8002/v1/;
             proxy_set_header Authorization "Bearer ${PROXY_KEY}";
+            proxy_set_header X-Real-IP $client_addr;
+            limit_req zone=llm burst=30 nodelay;
+            limit_conn addr 20;
 
             # Allow long agent loops (multi-turn tool use). 600s keeps the
             # timeout uniform across the whole chain: the geo-agent client
@@ -179,6 +197,9 @@ data:
             proxy_set_header Host duckdb-mcp.nrp-nautilus.io;
             proxy_set_header Connection "";
             proxy_set_header Authorization "Bearer ${MCP_AUTH_TOKEN}";
+            proxy_set_header X-Real-IP $client_addr;
+            limit_req zone=mcp burst=60 nodelay;
+            limit_conn addr 20;
             proxy_read_timeout 600s;
             proxy_send_timeout 600s;
             proxy_buffering off;
