@@ -184,7 +184,8 @@ data:
         # rather than the public hostname (glen-ops#73).
         # Since 2026-11-11 this app runs in schmidtdse and uses schmidtdse's own copy
         # of the server, because pods here cannot reach Services in biodiversity.
-        # The token is this app's own key in Secret duckdb-mcp-tokens.
+        # The token is the key the public apps share (Secret duckdb-mcp-tokens, key
+        # public); X-Glen-App names the app, as on /api/llm/.
         location /api/mcp {
             proxy_pass http://duckdb-mcp.schmidtdse.svc.cluster.local:8000/mcp;
             # register_hex_tiles returns tile URLs on the server's in-cluster address,
@@ -197,6 +198,7 @@ data:
             proxy_set_header Host duckdb-mcp.schmidtdse.svc.cluster.local;
             proxy_set_header Connection "";
             proxy_set_header Authorization "Bearer ${MCP_AUTH_TOKEN}";
+            proxy_set_header X-Glen-App "padus";
             proxy_set_header X-Real-IP $client_addr;
             limit_req zone=mcp burst=120 nodelay;
             proxy_read_timeout 600s;
@@ -213,6 +215,7 @@ data:
             proxy_set_header Connection "";
             proxy_set_header X-Real-IP $client_addr;
             proxy_set_header Authorization "Bearer ${MCP_AUTH_TOKEN}";
+            proxy_set_header X-Glen-App "padus";
         }
 
         location / {
