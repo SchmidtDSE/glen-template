@@ -101,11 +101,13 @@ For private data modules (rclone sidecar, oauth2-proxy, private parquet credenti
 
 ### CDN versioning
 
-`index.html` tracks `@main` by default:
+The app runs glen core, pinned to a release tag. `index.html` loads it, and its stylesheets, at that tag, and `layers-input.json` names the plugins at the same tag:
 
 ```html
-<script type="module" src="https://cdn.jsdelivr.net/gh/SchmidtDSE/glen@main/app/main.js"></script>
+<script type="module" src="https://cdn.jsdelivr.net/gh/SchmidtDSE/glen@v3.51.0/core/main.js"></script>
 ```
+
+Move every `glen@<tag>` URL in both files together. `scripts/build-wasm-copy.py` builds the browser-only GitHub Pages copy from these same files: there the MCP plugin runs geo-query-wasm in a Web Worker instead of calling duckdb-mcp, and the hex plugin loads the same geo-query-wasm release.
 
 **When testing a geo-agent PR:** pin to the PR's HEAD commit hash, verify jsDelivr serves it, then return to `@main` when done:
 
@@ -118,7 +120,7 @@ curl -sI https://cdn.jsdelivr.net/gh/SchmidtDSE/glen@<sha>/app/style.css | grep 
 # Must return HTTP/2 200
 ```
 
-Replace all three occurrences of the SHA in `index.html` (style.css, chat.css, sidebar.css, main.js), commit to `main`, and restart.
+Replace every `glen@` ref in `index.html` (style.css, chat.css, sidebar.css, core/main.js) and in `layers-input.json`'s plugin URLs, commit to `main`, and restart.
 
 ---
 
@@ -132,7 +134,7 @@ Replace all three occurrences of the SHA in `index.html` (style.css, chat.css, s
 | `collections` | Yes | array | Collection specs (see below) |
 | `view` | No | object | `{ "center": [lon, lat], "zoom": z }` |
 | `titiler_url` | No | string | TiTiler server for COG rasters (default: `https://titiler.nrp-nautilus.io`) |
-| `mcp_url` | No | string | MCP/DuckDB server URL for SQL analytics |
+| `plugins` | No | array | glen core plugins: the MCP server for SQL analytics (`core/plugins/mcp.js`, with the server's `url`), hex tile layers, charts, drawing and uploads. See [glen core's README](https://github.com/SchmidtDSE/glen/blob/main/core/README.md#plugins) |
 | `llm` | No | object | LLM config for user-provided key mode (see below) |
 | `welcome` | No | object | `{ "message": "...", "examples": ["...", "..."] }` |
 

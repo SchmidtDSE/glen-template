@@ -1,13 +1,23 @@
 {
     "catalog": "https://s3-west.nrp-nautilus.io/public-data/stac/catalog.json",
     "titiler_url": "https://titiler.nrp-nautilus.io",
-    "mcp_url": "https://duckdb-mcp.nrp-nautilus.io/mcp",
+    "plugins": [
+        {
+            "url": "https://cdn.jsdelivr.net/gh/SchmidtDSE/glen@v3.51.0/core/plugins/mcp.js",
+            "options": {
+                "url": "https://duckdb-mcp.nrp-nautilus.io/mcp",
+                "prompt": "geospatial-analyst"
+            }
+        },
+        "https://cdn.jsdelivr.net/gh/SchmidtDSE/glen@v3.51.0/core/plugins/hex.js",
+        "https://cdn.jsdelivr.net/gh/SchmidtDSE/glen@v3.51.0/core/plugins/charts.js",
+        "https://cdn.jsdelivr.net/gh/SchmidtDSE/glen@v3.51.0/core/plugins/draw.js",
+        {
+            "url": "https://cdn.jsdelivr.net/gh/SchmidtDSE/glen@v3.51.0/core/plugins/uploads.js",
+            "options": {}
+        }
+    ],
     "auto_approve": true,
-    "upload_enabled": true,
-    "draw_enabled": true,
-    "charts": {
-        "enabled": true
-    },
     "geocoder": {
         "provider": "nominatim",
         "search_box": true
