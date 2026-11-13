@@ -104,7 +104,7 @@ For private data modules (rclone sidecar, oauth2-proxy, private parquet credenti
 The app runs glen core, pinned to a release tag. `index.html` loads it, and its stylesheets, at that tag, and `layers-input.json` names the plugins at the same tag:
 
 ```html
-<script type="module" src="https://cdn.jsdelivr.net/gh/SchmidtDSE/glen@v3.51.0/core/main.js"></script>
+<script type="module" src="https://cdn.jsdelivr.net/gh/SchmidtDSE/glen@v3.51.1/core/main.js"></script>
 ```
 
 Move every `glen@<tag>` URL in both files together. `scripts/build-wasm-copy.py` builds the browser-only GitHub Pages copy from these same files: there the MCP plugin runs geo-query-wasm in a Web Worker instead of calling duckdb-mcp, and the hex plugin loads the same geo-query-wasm release.
