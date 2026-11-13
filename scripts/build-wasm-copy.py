@@ -3,17 +3,19 @@
 
 The copy runs with no server. The visitor brings their own LLM key (the `llm`
 block in layers-input.json), and geo-query's tools run in the browser on
-DuckDB-wasm (SchmidtDSE/geo-query-wasm). Each collection is read from its
-source.coop mirror when it has one, and from NRP's public bucket otherwise.
+DuckDB-wasm (SchmidtDSE/geo-query-wasm), in a Web Worker that glen core's MCP
+plugin starts. Each collection is read from its source.coop mirror when it has
+one, and from NRP's public bucket otherwise.
 
 It is generated from the app's own files, so it never drifts from them:
 
-    index.html         an import map that swaps GLEN's MCP client for
-                       glen-wasm-mcp.js, and the worker's configuration
-    layers-input.json  collection URLs moved to source.coop where mirrored,
-                       mcp_url unused
+    layers-input.json  collection URLs moved to source.coop where mirrored;
+                       the MCP plugin runs geo-query-wasm in a worker instead
+                       of calling duckdb-mcp, with SQL on NRP paths rewritten
+                       to the mirrors; the hex plugin loads the same
+                       geo-query-wasm release, to draw its in-browser tiles
     worker.js          a same-origin wrapper around geo-query-wasm's worker
-    glen-wasm-mcp.js, system-prompt.md   copied as they are
+    index.html, system-prompt.md   copied as they are
 
 Usage: scripts/build-wasm-copy.py OUT_DIR
 """
@@ -45,11 +47,14 @@ def mirrored(url):
         return False
 
 
+def plugin_url(p):
+    return p if isinstance(p, str) else (p or {}).get("url", "")
+
+
 def build(root, out):
     out.mkdir(parents=True, exist_ok=True)
 
     cfg = json.loads((root / "layers-input.json").read_text())
-    cfg["mcp_url"] = "https://geo-query-wasm.invalid/mcp"  # never fetched
     buckets = set()
     for c in cfg.get("collections", []):
         url = c.get("collection_url", "") if isinstance(c, dict) else ""
@@ -62,7 +67,6 @@ def build(root, out):
             buckets.add(m.group(1))
         else:
             print(f"no source.coop mirror, reading from NRP: {c['collection_id']}")
-    (out / "layers-input.json").write_text(json.dumps(cfg, indent=4) + "\n")
 
     # SQL the model writes from NRP paths reads the mirror instead, bucket by
     # bucket, so collections with no mirror still read from NRP.
@@ -72,34 +76,30 @@ def build(root, out):
         rewrite.append({"from": f"https://s3-west.nrp-nautilus.io/public-{b}/", "to": SC_HTTPS.format(b)})
     worker_config = {"discovery": False, "workers": 2, "rewrite": rewrite}
 
+    # glen core's MCP plugin runs the worker in place of duckdb-mcp
+    # (SchmidtDSE/glen#460), and its hex plugin draws the worker's tiles.
+    plugins = cfg.get("plugins", [])
+    mcp = [i for i, p in enumerate(plugins) if plugin_url(p).endswith("/core/plugins/mcp.js")]
+    if len(mcp) != 1:
+        sys.exit("layers-input.json: expected one glen core MCP plugin (core/plugins/mcp.js)")
+    plugins[mcp[0]] = {"url": plugin_url(plugins[mcp[0]]), "options": {
+        "worker": "worker.js", "worker_config": worker_config, "prompt": "geospatial-analyst"}}
+    for i, p in enumerate(plugins):
+        if plugin_url(p).endswith("/core/plugins/hex.js"):
+            plugins[i] = {"url": plugin_url(p), "options": {**(p.get("options", {}) if isinstance(p, dict) else {}),
+                                                            "geo_query_wasm": GEO_QUERY_WASM}}
+    (out / "layers-input.json").write_text(json.dumps(cfg, indent=4) + "\n")
+
     html = (root / "index.html").read_text()
-    pins = set(re.findall(r"cdn\.jsdelivr\.net/gh/SchmidtDSE/glen@([^/]+)/", html))
-    if len(pins) != 1:
-        sys.exit(f"index.html: expected one GLEN pin, found {sorted(pins)}")
-    glen = f"https://cdn.jsdelivr.net/gh/SchmidtDSE/glen@{pins.pop()}/app/"
-    importmap = {"imports": {
-        "glen/": glen,
-        "geo-query-wasm/": GQW_BASE,
-        glen + "mcp-client.js": "./glen-wasm-mcp.js",
-    }}
-    head = (
-        "\n    <!-- Browser-only copy (scripts/build-wasm-copy.py): GLEN's MCP client is\n"
-        "         replaced by one that runs geo-query in a Web Worker. -->\n"
-        f'    <script type="importmap">{json.dumps(importmap)}</script>\n'
-        f'    <script type="application/json" id="geo-query-wasm-config">{json.dumps(worker_config)}</script>\n'
-    )
-    # The import map must come before any module script; the charset stays first.
-    charset = '<meta charset="UTF-8">\n'
-    if charset not in html:
-        sys.exit("index.html: no charset meta to place the import map after")
-    (out / "index.html").write_text(html.replace(charset, charset + head, 1))
+    if "/core/main.js" not in html:
+        sys.exit("index.html: expected the page to load glen core (core/main.js)")
+    (out / "index.html").write_text(html)
 
     (out / "worker.js").write_text(
         "// geo-query-wasm's worker, started from this origin so it can read its\n"
         "// configuration from this file's URL (built by scripts/build-wasm-copy.py).\n"
         f"import '{GQW_BASE}worker.js';\n")
 
-    shutil.copy(root / "wasm/glen-wasm-mcp.js", out)
     shutil.copy(root / "system-prompt.md", out)
 
 
