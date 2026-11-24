@@ -24,7 +24,7 @@ The schema below is kept inline so you can work without a network fetch. If it c
 
 ### Writing the system prompt
 
-**Keep `system-prompt.md` lean.** The MCP query tool (`list_datasets`, `get_schema`) already provides the agent with dataset titles, descriptions, column schemas, coded values, and exact S3 parquet paths at runtime. Do not duplicate any of this in the system prompt — it drifts out of sync and can contradict the tools.
+**Keep `system-prompt.md` lean.** glen's MCP plugin loads the server's tool definitions and appends the server's own analyst prompt at runtime, and those tools give the agent dataset titles, descriptions, column schemas, coded values, and exact S3 parquet paths. Do not duplicate any of this in the system prompt — it drifts out of sync and can contradict the tools.
 
 What **belongs** in `system-prompt.md`:
 - Domain-specific context the tools cannot provide (e.g., "this dataset has one row per funding transaction, not per site — deduplicate acres before summing")
@@ -34,12 +34,13 @@ What **belongs** in `system-prompt.md`:
 - "Data tool, not advisor" guardrails if the agent should avoid giving policy opinions
 
 What **does not belong** in `system-prompt.md`:
-- Column listings or S3 paths (use `get_schema` instead — direct the agent to call it)
+- Column listings or S3 paths (the agent reads these from the catalog through the MCP tools)
+- Tool names or instructions on how to call the MCP tools (the server supplies both, and names copied here go stale)
 - Multiple SQL examples with hardcoded paths (these go stale and may contradict the MCP tool's own query optimization rules)
 - DuckDB configuration details (thread count, extensions)
 - Dataset descriptions that repeat what's in the STAC catalog
 
-Instead, add a "Discovering data" section directing the agent to verify against the dataset metadata (via `list_datasets` / `get_schema`) before writing any SQL.
+Keep the template's "Ask, don't guess" section, which tells the agent to verify against the dataset metadata before writing SQL without naming any tool.
 
 ---
 
