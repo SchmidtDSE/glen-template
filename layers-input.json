@@ -72,7 +72,9 @@
             "How many acres of GAP Status 1 land does California have?",
             "What's the average irrecoverable carbon in California's GAP 1+2 protected lands?",
             "Find the top 5 states by conservation easement acreage.",
-            "Color the fee lands by management type and tell me the top 3 management agencies by acreage."
+            "Color the fee lands by management type and tell me the top 3 management agencies by acreage.",
+            "Add a year-range control for wildfires from 2000 to 2021, and chart the acres burned by wildfire in each year of the range.",
+            "Add a state menu with California, Oregon, Washington, Arizona and Colorado, and chart the 10 most socially vulnerable counties in the chosen state."
         ]
     },
     "links": {
