@@ -105,7 +105,7 @@ For private data modules (rclone sidecar, oauth2-proxy, private parquet credenti
 The app runs glen core, pinned to a release tag. `index.html` loads it, and its stylesheets, at that tag, and `layers-input.json` names the plugins at the same tag:
 
 ```html
-<script type="module" src="https://cdn.jsdelivr.net/gh/SchmidtDSE/glen@v4.2.1/core/main.js"></script>
+<script type="module" src="https://cdn.jsdelivr.net/gh/SchmidtDSE/glen@v4.4.0/core/main.js"></script>
 ```
 
 Move every `glen@<tag>` URL in both files together. `scripts/build-wasm-copy.py` builds the browser-only GitHub Pages copy from these same files: there the MCP plugin runs geo-query-wasm in a Web Worker instead of calling duckdb-mcp, and the hex plugin loads the same geo-query-wasm release.
@@ -135,7 +135,7 @@ Replace every `glen@` ref in `index.html` (style.css, chat.css, sidebar.css, cor
 | `collections` | Yes | array | Collection specs (see below) |
 | `view` | No | object | `{ "center": [lon, lat], "zoom": z }` |
 | `titiler_url` | No | string | TiTiler server for COG rasters (default: `https://titiler.nrp-nautilus.io`) |
-| `plugins` | No | array | glen core plugins: the MCP server for SQL analytics (`core/plugins/mcp.js`, with the server's `url`), hex tile layers, charts, drawing and uploads. See [glen core's README](https://github.com/SchmidtDSE/glen/blob/main/core/README.md#plugins) |
+| `plugins` | No | array | glen core plugins: the MCP server for SQL analytics (`core/plugins/mcp.js`, with the server's `url`), hex tile layers, settings controls whose values charts and hex layers re-run on, charts, drawing, uploads, geolocation, and CSV or GeoJSON downloads of query results. See [glen core's README](https://github.com/SchmidtDSE/glen/blob/main/core/README.md#plugins) |
 | `llm` | No | object | LLM config for user-provided key mode (see below) |
 | `welcome` | No | object | `{ "message": "...", "examples": ["...", "..."] }` |
 
