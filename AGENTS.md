@@ -102,10 +102,10 @@ For private data modules (rclone sidecar, oauth2-proxy, private parquet credenti
 
 ### CDN versioning
 
-The app runs glen core, pinned to a release tag. `index.html` loads it, and its stylesheets, at that tag, and `layers-input.json` names the plugins at the same tag:
+The app runs glen core, pinned to a release tag. `index.html` loads it at that tag, and `layers-input.json` names the plugins at the same tag. glen core adds MapLibre, PMTiles, the chat's libraries and its own stylesheets itself, with their integrity hashes, so the page lists none of them:
 
 ```html
-<script type="module" src="https://cdn.jsdelivr.net/gh/SchmidtDSE/glen@v4.4.0/core/main.js"></script>
+<script type="module" src="https://cdn.jsdelivr.net/gh/SchmidtDSE/glen@v4.5.0/core/main.js"></script>
 ```
 
 Move every `glen@<tag>` URL in both files together. `scripts/build-wasm-copy.py` builds the browser-only GitHub Pages copy from these same files: there the MCP plugin runs geo-query-wasm in a Web Worker instead of calling duckdb-mcp, and the hex plugin loads the same geo-query-wasm release.
@@ -117,11 +117,11 @@ Move every `glen@<tag>` URL in both files together. `scripts/build-wasm-copy.py`
 gh pr view 166 --repo SchmidtDSE/glen --json headRefOid --jq '.headRefOid[:8]'
 
 # Verify jsDelivr serves it before deploying
-curl -sI https://cdn.jsdelivr.net/gh/SchmidtDSE/glen@<sha>/app/style.css | grep HTTP
+curl -sI https://cdn.jsdelivr.net/gh/SchmidtDSE/glen@<sha>/core/main.js | grep HTTP
 # Must return HTTP/2 200
 ```
 
-Replace every `glen@` ref in `index.html` (style.css, chat.css, sidebar.css, core/main.js) and in `layers-input.json`'s plugin URLs, commit to `main`, and restart.
+Replace every `glen@` ref in `index.html` (core/main.js) and in `layers-input.json`'s plugin URLs, commit to `main`, and restart.
 
 ---
 
