@@ -21,7 +21,11 @@
 #   CONFIG_JSON_VARS  more variables for config.json, e.g. '${MAPTILER_KEY}'; only
 #                     values the browser may see, since config.json is public
 #   CONFIG_JSON_COPIES  more places to copy config.json, e.g. a second page's
-#                     /usr/share/nginx/html/iucn/config.json
+#                     /usr/share/nginx/html/iucn/config.json; skipped when the
+#                     directory is absent
+#   AUTH_REALM        the login prompt, for an app that includes auth-basic.conf
+#   APP_TOKEN         the chat bearer for llm-token.conf; by default derived from
+#                     /etc/nginx/auth/htpasswd, so it changes with the password
 set -eu
 
 here=$(cd "$(dirname "$0")" && pwd)
@@ -45,7 +49,12 @@ if [ -n "${MCP_UPSTREAM:-}" ]; then
     export MCP_TILES_SOURCE
 fi
 
-vars='${GLEN_APP} ${LLM_UPSTREAM} ${PROXY_KEY} ${MCP_UPSTREAM} ${MCP_HOST} ${MCP_TILES_SOURCE} ${MCP_AUTH_TOKEN} ${MCP_SERVER_URL}'
+if [ -z "${APP_TOKEN:-}" ] && [ -f /etc/nginx/auth/htpasswd ]; then
+    APP_TOKEN=$(sha256sum /etc/nginx/auth/htpasswd | cut -c1-40)
+    export APP_TOKEN
+fi
+
+vars='${GLEN_APP} ${LLM_UPSTREAM} ${PROXY_KEY} ${MCP_UPSTREAM} ${MCP_HOST} ${MCP_TILES_SOURCE} ${MCP_AUTH_TOKEN} ${MCP_SERVER_URL} ${APP_TOKEN} ${AUTH_REALM}'
 vars="$vars ${APP_NGINX_VARS:-}"
 
 need GLEN_APP
@@ -53,6 +62,8 @@ mkdir -p "$out"
 for name in $(grep -o '/etc/nginx/glen/[a-z0-9-]*\.conf' "$app_conf" | sort -u | xargs -n1 basename || true); do
     case $name in
         llm.conf) need LLM_UPSTREAM PROXY_KEY ;;
+        llm-token.conf) need LLM_UPSTREAM PROXY_KEY APP_TOKEN ;;
+        auth-basic.conf) need AUTH_REALM ;;
         mcp.conf) need MCP_UPSTREAM MCP_HOST MCP_AUTH_TOKEN ;;
     esac
     if [ ! -f "$here/$name" ]; then
@@ -67,7 +78,9 @@ envsubst "$vars" < "$app_conf" > /etc/nginx/conf.d/default.conf
 if [ -f /config/config.template.json ]; then
     envsubst "\${MCP_SERVER_URL} ${CONFIG_JSON_VARS:-}" < /config/config.template.json > /usr/share/nginx/html/config.json
     for copy in ${CONFIG_JSON_COPIES:-}; do
-        cp /usr/share/nginx/html/config.json "$copy"
+        if [ -d "$(dirname "$copy")" ]; then
+            cp /usr/share/nginx/html/config.json "$copy"
+        fi
     done
 fi
 
