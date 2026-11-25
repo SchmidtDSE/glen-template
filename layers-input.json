@@ -3,28 +3,28 @@
     "titiler_url": "https://titiler.nrp-nautilus.io",
     "plugins": [
         {
-            "url": "https://cdn.jsdelivr.net/gh/SchmidtDSE/glen@v4.4.0/core/plugins/mcp.js",
+            "url": "https://cdn.jsdelivr.net/gh/SchmidtDSE/glen@v4.5.0/core/plugins/mcp.js",
             "options": {
                 "url": "https://duckdb-mcp.nrp-nautilus.io/mcp",
                 "prompt": "geospatial-analyst"
             }
         },
-        "https://cdn.jsdelivr.net/gh/SchmidtDSE/glen@v4.4.0/core/plugins/hex.js",
-        "https://cdn.jsdelivr.net/gh/SchmidtDSE/glen@v4.4.0/core/plugins/controls.js",
-        "https://cdn.jsdelivr.net/gh/SchmidtDSE/glen@v4.4.0/core/plugins/charts.js",
-        "https://cdn.jsdelivr.net/gh/SchmidtDSE/glen@v4.4.0/core/plugins/draw.js",
+        "https://cdn.jsdelivr.net/gh/SchmidtDSE/glen@v4.5.0/core/plugins/hex.js",
+        "https://cdn.jsdelivr.net/gh/SchmidtDSE/glen@v4.5.0/core/plugins/controls.js",
+        "https://cdn.jsdelivr.net/gh/SchmidtDSE/glen@v4.5.0/core/plugins/charts.js",
+        "https://cdn.jsdelivr.net/gh/SchmidtDSE/glen@v4.5.0/core/plugins/draw.js",
         {
-            "url": "https://cdn.jsdelivr.net/gh/SchmidtDSE/glen@v4.4.0/core/plugins/uploads.js",
+            "url": "https://cdn.jsdelivr.net/gh/SchmidtDSE/glen@v4.5.0/core/plugins/uploads.js",
             "options": {}
         },
         {
-            "url": "https://cdn.jsdelivr.net/gh/SchmidtDSE/glen@v4.4.0/core/plugins/geolocate.js",
+            "url": "https://cdn.jsdelivr.net/gh/SchmidtDSE/glen@v4.5.0/core/plugins/geolocate.js",
             "options": {
                 "button": true,
                 "agent_tool": true
             }
         },
-        "https://cdn.jsdelivr.net/gh/SchmidtDSE/glen@v4.4.0/core/plugins/downloads.js"
+        "https://cdn.jsdelivr.net/gh/SchmidtDSE/glen@v4.5.0/core/plugins/downloads.js"
     ],
     "auto_approve": true,
     "export": true,

@@ -10,7 +10,7 @@ Users describe in plain language what datasets to show; the app uses an LLM agen
 ## Repository structure
 
 ```
-index.html          ← HTML shell — loads core JS/CSS from CDN
+index.html          ← HTML shell — loads glen core from the CDN
 layers-input.json   ← which STAC collections to show + LLM settings
 system-prompt.md    ← LLM system prompt (customize per app)
 k8s/                ← Kubernetes deployment manifests (optional)
