@@ -18,6 +18,10 @@
 #   MCP_AUTH_TOKEN    bearer token for the MCP server
 #   MCP_SERVER_URL    absolute https://<host>/api/mcp, written into config.json
 #   APP_NGINX_VARS    more variables for the app's own block, e.g. '${SDM_AUTH_TOKEN}'
+#   CONFIG_JSON_VARS  more variables for config.json, e.g. '${MAPTILER_KEY}'; only
+#                     values the browser may see, since config.json is public
+#   CONFIG_JSON_COPIES  more places to copy config.json, e.g. a second page's
+#                     /usr/share/nginx/html/iucn/config.json
 set -eu
 
 here=$(cd "$(dirname "$0")" && pwd)
@@ -59,9 +63,12 @@ for name in $(grep -o '/etc/nginx/glen/[a-z0-9-]*\.conf' "$app_conf" | sort -u |
 done
 envsubst "$vars" < "$app_conf" > /etc/nginx/conf.d/default.conf
 
-# Client-side config: no secrets, only the MCP URL.
+# Client-side config: no secrets, only the MCP URL and CONFIG_JSON_VARS.
 if [ -f /config/config.template.json ]; then
-    envsubst '${MCP_SERVER_URL}' < /config/config.template.json > /usr/share/nginx/html/config.json
+    envsubst "\${MCP_SERVER_URL} ${CONFIG_JSON_VARS:-}" < /config/config.template.json > /usr/share/nginx/html/config.json
+    for copy in ${CONFIG_JSON_COPIES:-}; do
+        cp /usr/share/nginx/html/config.json "$copy"
+    done
 fi
 
 # nginx defaults to one worker per CPU, which on large NRP nodes OOMKills the

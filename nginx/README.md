@@ -56,6 +56,8 @@ its env:
 | `MCP_AUTH_TOKEN` | from the MCP token Secret |
 | `MCP_SERVER_URL` | `https://<host>/api/mcp`, written into `config.json` |
 | `APP_NGINX_VARS` | optional; more variables the app's own block uses, e.g. `'${SDM_AUTH_TOKEN}'` |
+| `CONFIG_JSON_VARS` | optional; more variables for `config.json`, e.g. `'${MAPTILER_KEY}'`. `config.json` is public, so never a secret |
+| `CONFIG_JSON_COPIES` | optional; more paths to copy `config.json` to, for a second page such as `/usr/share/nginx/html/iucn/config.json` |
 
 `render.sh` renders only the snippets the server block includes, and stops the
 pod if a value one of them needs is missing.
