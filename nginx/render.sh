@@ -24,6 +24,7 @@
 #                     /usr/share/nginx/html/iucn/config.json; skipped when the
 #                     directory is absent
 #   AUTH_REALM        the login prompt, for an app that includes auth-basic.conf
+#   CORS_ORIGIN       Access-Control-Allow-Origin in base.conf; default *
 #   APP_TOKEN         the chat bearer for llm-token.conf; by default derived from
 #                     /etc/nginx/auth/htpasswd, so it changes with the password
 set -eu
@@ -54,7 +55,10 @@ if [ -z "${APP_TOKEN:-}" ] && [ -f /etc/nginx/auth/htpasswd ]; then
     export APP_TOKEN
 fi
 
-vars='${GLEN_APP} ${LLM_UPSTREAM} ${PROXY_KEY} ${MCP_UPSTREAM} ${MCP_HOST} ${MCP_TILES_SOURCE} ${MCP_AUTH_TOKEN} ${MCP_SERVER_URL} ${APP_TOKEN} ${AUTH_REALM}'
+: "${CORS_ORIGIN:=*}"
+export CORS_ORIGIN
+
+vars='${GLEN_APP} ${LLM_UPSTREAM} ${PROXY_KEY} ${MCP_UPSTREAM} ${MCP_HOST} ${MCP_TILES_SOURCE} ${MCP_AUTH_TOKEN} ${MCP_SERVER_URL} ${APP_TOKEN} ${AUTH_REALM} ${CORS_ORIGIN}'
 vars="$vars ${APP_NGINX_VARS:-}"
 
 need GLEN_APP
@@ -63,6 +67,7 @@ for name in $(grep -o '/etc/nginx/glen/[a-z0-9-]*\.conf' "$app_conf" | sort -u |
     case $name in
         llm.conf) need LLM_UPSTREAM PROXY_KEY ;;
         llm-token.conf) need LLM_UPSTREAM PROXY_KEY APP_TOKEN ;;
+        llm-private.conf) need LLM_UPSTREAM PROXY_KEY ;;
         auth-basic.conf) need AUTH_REALM ;;
         mcp.conf) need MCP_UPSTREAM MCP_HOST MCP_AUTH_TOKEN ;;
     esac

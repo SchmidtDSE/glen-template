@@ -13,6 +13,7 @@ fleet-wide change is one edit and a new tag rather than a hand edit per app
 | `mcp.conf` | server | `/api/mcp` and `/tiles/` to geo-query |
 | `spa.conf` | server | `/`, serving `index.html` uncached |
 | `auth-basic.conf` | server | password login on everything (`/health` and `llm-token.conf` turn it off) |
+| `llm-private.conf` | server | for an app behind a sign-in proxy, in place of `llm.conf`: all of `/api/llm/` relayed, no token, no limits |
 | `llm-token.conf` | server | for an app behind a password, in place of `llm.conf`: all of `/api/llm/` relayed, checked against `APP_TOKEN`, no limits |
 | `render.sh` | | fills in per-app values from the env, writes `config.json`, starts nginx |
 
@@ -60,6 +61,7 @@ its env:
 | `APP_NGINX_VARS` | optional; more variables the app's own block uses, e.g. `'${SDM_AUTH_TOKEN}'` |
 | `CONFIG_JSON_VARS` | optional; more variables for `config.json`, e.g. `'${MAPTILER_KEY}'`. `config.json` is public, so never a secret |
 | `CONFIG_JSON_COPIES` | optional; more paths to copy `config.json` to, for a second page such as `/usr/share/nginx/html/iucn/config.json`; skipped when the directory is absent |
+| `CORS_ORIGIN` | optional; `Access-Control-Allow-Origin` in `base.conf`, default `*`. A signed-in app can set its own origin |
 | `AUTH_REALM` | with `auth-basic.conf`; the login prompt |
 | `APP_TOKEN` | with `llm-token.conf`; derived from `/etc/nginx/auth/htpasswd` when unset. Put `'${APP_TOKEN}'` in `CONFIG_JSON_VARS` so the page can send it |
 
